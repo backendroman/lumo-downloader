@@ -1,0 +1,13 @@
+[project]
+name = "lumo-downloader"
+version = "1.0.0"
+description = "Media downloader web service built on FastAPI, yt-dlp and FFmpeg"
+requires-python = ">=3.12"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-p no:cacheprovider"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore:Using `httpx` with `starlette.testclient`",
+]

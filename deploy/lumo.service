@@ -1,0 +1,59 @@
+# /etc/systemd/system/lumo.service
+[Unit]
+Description=Lumo media downloader (FastAPI + yt-dlp)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=lumo
+Group=lumo
+WorkingDirectory=/opt/lumo/app
+EnvironmentFile=-/opt/lumo/app/.env
+Environment=PYTHONUNBUFFERED=1
+Environment=DOWNLOAD_DIR=/var/lib/lumo/downloads
+# only 1 worker, jobs are kept in memory
+ExecStart=/opt/lumo/venv/bin/uvicorn app.main:app \
+    --host 127.0.0.1 --port 8000 --workers 1 \
+    --proxy-headers --forwarded-allow-ips=127.0.0.1 \
+    --timeout-graceful-shutdown 20 --no-server-header
+Restart=on-failure
+RestartSec=3
+KillMode=control-group
+TimeoutStopSec=30
+
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/lumo
+StateDirectory=lumo
+StateDirectoryMode=0750
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+RestrictNamespaces=true
+LockPersonality=true
+RemoveIPC=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+SystemCallArchitectures=native
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+UMask=0027
+
+# no private networks (loopback is needed for uvicorn itself)
+IPAddressDeny=10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 169.254.0.0/16 100.64.0.0/10 fc00::/7 fe80::/10
+IPAddressAllow=127.0.0.0/8 ::1
+
+MemoryMax=2G
+TasksMax=256
+LimitNOFILE=4096
+
+[Install]
+WantedBy=multi-user.target
